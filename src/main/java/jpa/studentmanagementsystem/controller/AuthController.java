@@ -1,15 +1,16 @@
 package jpa.studentmanagementsystem.controller;
 
 import jakarta.validation.Valid;
-import jpa.studentmanagementsystem.configLogin.SignupRequest;
+import jpa.studentmanagementsystem.configLogin.request.SignupRequest;
 import jpa.studentmanagementsystem.dto.UserDto;
 import jpa.studentmanagementsystem.entity.Role;
+import jpa.studentmanagementsystem.exception.ErrorResponse;
 import jpa.studentmanagementsystem.mapper.UserMapper;
 import jpa.studentmanagementsystem.repository.RoleRepository;
 import jpa.studentmanagementsystem.repository.UserRepository;
 import jpa.studentmanagementsystem.security.JwtUtils;
-import jpa.studentmanagementsystem.configLogin.LoginRequest;
-import jpa.studentmanagementsystem.configLogin.LoginResponse;
+import jpa.studentmanagementsystem.configLogin.request.LoginRequest;
+import jpa.studentmanagementsystem.configLogin.request.LoginResponse;
 import jpa.studentmanagementsystem.service.UserService;
 import jpa.studentmanagementsystem.variable.RoleName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,9 +62,7 @@ public class AuthController {
             authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
         } catch (AuthenticationException exception) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("message", "Bad credentials");
-            errorResponse.put("status", false);
+            ErrorResponse errorResponse = new ErrorResponse("Login fail", "User or Password is incorrect");
             return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
         }
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -81,45 +80,55 @@ public class AuthController {
         // Tạo response
         LoginResponse response = new LoginResponse(loginRequest.getUsername(), roles, jwtToken);
 
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(response,HttpStatus.ACCEPTED);
     }
 
     // custom user because so many field null
     @PostMapping("/public/signup")
     public ResponseEntity<?> registerUsers(@Valid @RequestBody SignupRequest signUpRequest) {
-        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-            return ResponseEntity.badRequest().body("Error: Username is already taken!");
-        }
-        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-            return ResponseEntity.badRequest().body("Error: Email is already in use!");
-        }
-        if(userRepository.existsByPhoneNumber(signUpRequest.getPhone()) && !signUpRequest.getPhone().matches("^\\+84\\d{10}$")){
-            return ResponseEntity.badRequest().body("Error: Phone number is already in use!");
-        }
-        // Create new user's account
-        UserDto user = new UserDto(signUpRequest.getUsername(),
-                passwordEncoder.encode(signUpRequest.getPassword()),
-                signUpRequest.getLastname(),
-                signUpRequest.getEmail(),
-                signUpRequest.getPhone());
-        Set<String> strRoles = signUpRequest.getRole();
-        Role roles = null;
-        if (strRoles == null || strRoles.isEmpty()) {
-            roles = (roleRepository.findByRoleName(RoleName.ROLE_USER)
-                    .orElseThrow(() -> new RuntimeException("Error: Role is not found.")));
-        } else {
-            for (String roleStr : strRoles) {
-                if (roleStr.equalsIgnoreCase("admin")) {
-                    roles = (roleRepository.findByRoleName(RoleName.ROLE_ADMIN)
-                            .orElseThrow(() -> new RuntimeException("Error: Role is not found.")));
-                } else {
-                    roles = (roleRepository.findByRoleName(RoleName.ROLE_USER)
-                            .orElseThrow(() -> new RuntimeException("Error: Role is not found.")));
+        try {
+            if (userRepository.existsByUsername(signUpRequest.getUsername())) {
+                return ResponseEntity.badRequest()
+                        .body(new ErrorResponse("Validation Failed", "Username is already taken"));
+            }
+            if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+                return ResponseEntity.badRequest()
+                        .body(new ErrorResponse("Validation Failed", " Email is already in use!"));
+            }
+            if(userRepository.existsByPhoneNumber(signUpRequest.getPhone()) && !signUpRequest.getPhone().matches("^\\+84\\d{10}$")){
+                return ResponseEntity.badRequest()
+                        .body(new ErrorResponse("Validation Failed", " Phone is already in use!"));
+            }
+            // Create new user's account
+            UserDto user = new UserDto(signUpRequest.getUsername(),
+                    passwordEncoder.encode(signUpRequest.getPassword()),
+                    signUpRequest.getLastname(),
+                    signUpRequest.getEmail(),
+                    signUpRequest.getPhone());
+            Set<String> strRoles = signUpRequest.getRole();
+            Role roles = null;
+            if (strRoles == null || strRoles.isEmpty()) {
+                roles = (roleRepository.findByRoleName(RoleName.ROLE_USER)
+                        .orElseThrow(() -> new RuntimeException("Error: Role is not found.")));
+            } else {
+                for (String roleStr : strRoles) {
+                    if (roleStr.equalsIgnoreCase("admin")) {
+                        roles = (roleRepository.findByRoleName(RoleName.ROLE_ADMIN)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found.")));
+                    } else {
+                        roles = (roleRepository.findByRoleName(RoleName.ROLE_USER)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found.")));
+                    }
                 }
             }
+            user.setRole(roles);
+            userService.createUser(UserMapper.mapUserDto(user));
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new ErrorResponse("Good", " Create user successfully!!!"));
+
+        } catch(Exception e ){
+            ErrorResponse errorResponse = new ErrorResponse("Error:",e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
         }
-        user.setRole(roles);
-        userService.createUser(UserMapper.mapUserDto(user));
-        return ResponseEntity.ok("User registered successfully!");
     }
 }

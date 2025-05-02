@@ -38,7 +38,7 @@ public class Security {
         http.authorizeHttpRequests(requests -> requests
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Cho phép OPTIONS
                 .requestMatchers("/api/auth/public/**").permitAll() // Cho phép truy cập công khai
-                .requestMatchers("api/user/**").permitAll()
+                .requestMatchers("api/user/**").hasRole("ADMIN")
                 // Bất kỳ request nào khác cần xác thực
                 .anyRequest().authenticated()
         );
@@ -73,14 +73,14 @@ public class Security {
 //            Role adminRole = roleRepository.findByRoleName(RoleName.ROLE_ADMIN)
 //                    .orElseGet(() -> roleRepository.save(new Role(RoleName.ROLE_ADMIN)));
 //
-//            if (!userRepository.existsByUserName("user")) {
-//                User user1 = new User("user","user","nguyen","user@gmail.com","+84178261764");
+//            if (!userRepository.existsByUsername("user")) {
+//                User user1 = new User("user",passwordEncoder.encode("123456"),"nguyen","user@gmail.com","+84178261764");
 //                user1.setRole(userRole);
 //                userRepository.save(user1);
 //            }
 //
-//            if (!userRepository.existsByUserName("admin")) {
-//                User admin = new User("admin","admin","nguyen","admin@gmail.com","+84178226414");
+//            if (!userRepository.existsByUsername("admin")) {
+//                User admin = new User("admin",passwordEncoder.encode("admin"),"nguyen","admin@gmail.com","+84178226414");
 //                admin.setRole(adminRole);
 //                userRepository.save(admin);
 //            }

@@ -1,5 +1,6 @@
 package jpa.studentmanagementsystem.service;
 
+import jpa.studentmanagementsystem.dto.UserDto;
 import jpa.studentmanagementsystem.entity.User;
 import org.springframework.stereotype.Component;
 
@@ -8,9 +9,9 @@ import java.util.List;
 @Component
 public interface UserService {
 
-    User findByUserName(String studentName);
+    UserDto findByUserName(String studentName);
 
-    List<User> getAllUser();
+    List<UserDto> getAllUser();
 
     void deleteByUserName(String userName);
 

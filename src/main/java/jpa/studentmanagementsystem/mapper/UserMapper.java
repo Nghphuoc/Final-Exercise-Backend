@@ -18,7 +18,7 @@ public class UserMapper {
 
     public static UserDto mapUser(User user){
         return new UserDto(
-                user.getLastname(),
+                user.getUsername(),
                 user.getPassword(),
                 user.getLastname(),
                 user.getEmail(),

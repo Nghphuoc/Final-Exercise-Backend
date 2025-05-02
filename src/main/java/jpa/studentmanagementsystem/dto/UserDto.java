@@ -1,5 +1,6 @@
 package jpa.studentmanagementsystem.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jpa.studentmanagementsystem.entity.Role;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,6 +14,7 @@ import lombok.Setter;
 public class UserDto {
     private String username;
 
+    @JsonIgnore
     private String password;
 
     private String lastname;

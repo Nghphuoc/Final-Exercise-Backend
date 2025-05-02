@@ -1,7 +1,9 @@
 package jpa.studentmanagementsystem.service.serviceImpl;
 
+import jpa.studentmanagementsystem.dto.UserDto;
 import jpa.studentmanagementsystem.entity.User;
 import jpa.studentmanagementsystem.exception.DuplicationException;
+import jpa.studentmanagementsystem.mapper.UserMapper;
 import jpa.studentmanagementsystem.repository.UserRepository;
 import jpa.studentmanagementsystem.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -21,21 +24,24 @@ public class UserServiceImpl implements UserService {
     private PasswordEncoder passwordEncoder;
 
     @Override
-    public User findByUserName(String studentName) {
-        return userRepository.findByUsername(studentName)
-                .orElseThrow(()->new RuntimeException("cannot find: `"+studentName));
+    public UserDto findByUserName(String studentName) {
+        User user = userRepository.findByUsername(studentName)
+                .orElseThrow(()->new RuntimeException("cannot find: `" + studentName));
+        return UserMapper.mapUser(user);
     }
 
+
     @Override
-    public List<User> getAllUser() {
-        return userRepository.findAll();
+    public List<UserDto> getAllUser() {
+        List<User> users = userRepository.findAll();
+        return users.stream().map(UserMapper :: mapUser).collect(Collectors.toList());
     }
 
     @Override
     @Transactional
     public void deleteByUserName(String userName) {
         userRepository.findByUsername(userName)
-                .orElseThrow(()->new RuntimeException("cannot found: `"+userName));
+                .orElseThrow(()->new RuntimeException("cannot found: `" + userName));
         userRepository.deleteByUsername(userName);
     }
 
@@ -66,11 +72,12 @@ public class UserServiceImpl implements UserService {
                     }
                     existingUser.setPhoneNumber(student.getPhoneNumber());
                 }
-            }else{
+            } else{
                 throw new DuplicationException("Phone number is incorrect!: " + student.getPhoneNumber());
             }
-
-            existingUser.setPassword(passwordEncoder.encode(student.getPassword()));
+            if( student.getPassword() != null && !student.getPassword().isEmpty()){
+                existingUser.setPassword(passwordEncoder.encode(student.getPassword()));
+            }
             existingUser.setLastname(student.getLastname());
 
             userRepository.save(existingUser);

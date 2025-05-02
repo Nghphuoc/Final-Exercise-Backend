@@ -1,4 +1,4 @@
-package jpa.studentmanagementsystem.configLogin;
+package jpa.studentmanagementsystem.configLogin.request;
 
 import lombok.Getter;
 import lombok.Setter;

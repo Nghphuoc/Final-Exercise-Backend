@@ -1,4 +1,4 @@
-package jpa.studentmanagementsystem.configLogin;
+package jpa.studentmanagementsystem.configLogin.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -24,7 +24,7 @@ public class SignupRequest {
     private Set<String> role;
 
     @NotBlank
-    @Size(min = 6, max = 40)
+    @Size(min = 5, max = 40)
     private String password;
 
     @Setter
@@ -37,11 +37,11 @@ public class SignupRequest {
     @Getter
     private String lastname;
 
-    public @NotBlank @Size(min = 3, max = 50) String getUsername() {
+    public @NotBlank @Size(min = 5, max = 50) String getUsername() {
         return username;
     }
 
-    public void setUsername(@NotBlank @Size(min = 3, max = 50) String username) {
+    public void setUsername(@NotBlank @Size(min = 5, max = 50) String username) {
         this.username = username;
     }
 
@@ -53,11 +53,11 @@ public class SignupRequest {
         this.email = email;
     }
 
-    public @NotBlank @Size(min = 6, max = 40) String getPassword() {
+    public @NotBlank @Size(min = 5, max = 40) String getPassword() {
         return password;
     }
 
-    public void setPassword(@NotBlank @Size(min = 6, max = 40) String password) {
+    public void setPassword(@NotBlank @Size(min = 5, max = 40) String password) {
         this.password = password;
     }
 
