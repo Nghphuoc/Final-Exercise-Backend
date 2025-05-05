@@ -20,4 +20,6 @@ public interface UserService {
     void updateUser(String studentName, User student);
 
     List<UserDto> getUsersByCriteria(UserDto userDto);
+
+    Boolean forgotPassword (String username, String email, String password);
 }

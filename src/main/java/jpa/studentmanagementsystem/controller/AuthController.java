@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jpa.studentmanagementsystem.configLogin.request.SignupRequest;
 import jpa.studentmanagementsystem.dto.UserDto;
 import jpa.studentmanagementsystem.entity.Role;
+import jpa.studentmanagementsystem.entity.User;
 import jpa.studentmanagementsystem.exception.ErrorResponse;
 import jpa.studentmanagementsystem.mapper.UserMapper;
 import jpa.studentmanagementsystem.repository.RoleRepository;
@@ -11,6 +12,7 @@ import jpa.studentmanagementsystem.repository.UserRepository;
 import jpa.studentmanagementsystem.security.JwtUtils;
 import jpa.studentmanagementsystem.configLogin.request.LoginRequest;
 import jpa.studentmanagementsystem.configLogin.request.LoginResponse;
+import jpa.studentmanagementsystem.service.RoleService;
 import jpa.studentmanagementsystem.service.UserService;
 import jpa.studentmanagementsystem.variable.RoleName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +49,7 @@ public class AuthController {
     private UserRepository userRepository;
 
     @Autowired
-    private RoleRepository roleRepository;
+    private RoleService roleService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -87,48 +89,59 @@ public class AuthController {
     @PostMapping("/public/signup")
     public ResponseEntity<?> registerUsers(@Valid @RequestBody SignupRequest signUpRequest) {
         try {
-            if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-                return ResponseEntity.badRequest()
-                        .body(new ErrorResponse("Validation Failed", "Username is already taken"));
-            }
-            if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-                return ResponseEntity.badRequest()
-                        .body(new ErrorResponse("Validation Failed", " Email is already in use!"));
-            }
-            if(userRepository.existsByPhoneNumber(signUpRequest.getPhone()) && !signUpRequest.getPhone().matches("^\\+84\\d{9}$")){
-                return ResponseEntity.badRequest()
-                        .body(new ErrorResponse("Validation Failed", " Phone is already in use!"));
-            }
-            // Create new user's account
-            UserDto user = new UserDto(signUpRequest.getUsername(),
-                    passwordEncoder.encode(signUpRequest.getPassword()),
-                    signUpRequest.getLastname(),
-                    signUpRequest.getEmail(),
-                    signUpRequest.getPhone());
-            Set<String> strRoles = signUpRequest.getRole();
-            Role roles = null;
-            if (strRoles == null || strRoles.isEmpty()) {
-                roles = (roleRepository.findByRoleName(RoleName.ROLE_USER)
-                        .orElseThrow(() -> new RuntimeException("Error: Role is not found.")));
-            } else {
-                for (String roleStr : strRoles) {
-                    if (roleStr.equalsIgnoreCase("admin")) {
-                        roles = (roleRepository.findByRoleName(RoleName.ROLE_ADMIN)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found.")));
-                    } else {
-                        roles = (roleRepository.findByRoleName(RoleName.ROLE_USER)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found.")));
-                    }
-                }
-            }
-            user.setRole(roles);
-            userService.createUser(UserMapper.mapUserDto(user));
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new ErrorResponse("Good", " Create user successfully!!!"));
+            validateSignUpRequest(signUpRequest);
+            UserDto user = buildUserDto(signUpRequest);
 
-        } catch(Exception e ){
-            ErrorResponse errorResponse = new ErrorResponse("Error:",e.getMessage());
-            return ResponseEntity.badRequest().body(errorResponse);
+            //set role
+            Role role = roleService.resolveUserRole(signUpRequest.getRole());
+            user.setRole(role);
+
+            userService.createUser(UserMapper.mapUserDto(user));
+
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new ErrorResponse("Success", "Create user successfully!"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponse("Error", e.getMessage()));
         }
     }
+
+    @PutMapping("/public/forgot-password")
+    public ResponseEntity<?> setNewPassword(@RequestBody User user) {
+        if(userService.forgotPassword(user.getUsername(), user.getEmail(), user.getPassword())){
+            return ResponseEntity.status(HttpStatus.ACCEPTED)
+                    .body(new ErrorResponse("Success", "Password changed successfully!"));
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse("Error", "Invalid username or email!"));
+    }
+
+    private void validateSignUpRequest(SignupRequest request) {
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new RuntimeException("Username is already taken");
+        }
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email is already in use!");
+        }
+
+        if (!request.getPhone().matches("^\\+84\\d{9}$")) {
+            throw new RuntimeException("Phone format is incorrect!");
+        }
+
+        if (userRepository.existsByPhoneNumber(request.getPhone())) {
+            throw new RuntimeException("Phone number is already in use!");
+        }
+    }
+
+    private UserDto buildUserDto(SignupRequest request) {
+        return new UserDto(
+                request.getUsername(),
+                passwordEncoder.encode(request.getPassword()),
+                request.getLastname(),
+                request.getEmail(),
+                request.getPhone()
+        );
+    }
+
 }
