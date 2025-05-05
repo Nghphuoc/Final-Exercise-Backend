@@ -18,4 +18,6 @@ public interface UserService {
     void createUser(User student);
 
     void updateUser(String studentName, User student);
+
+    List<UserDto> getUsersByCriteria(UserDto userDto);
 }

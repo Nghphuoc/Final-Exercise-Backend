@@ -26,10 +26,29 @@ public class UserController {
     public ResponseEntity<?> createUser(@RequestBody User user){
        try {
            userService.createUser(user);
-           return ResponseEntity.status(HttpStatus.CREATED).body("User created successfully!!!");
+           Map<String, String> response = new HashMap<>();
+           response.put("status", "Success");
+           response.put("message", "Delete Successfully!!!");
+           return ResponseEntity.status(HttpStatus.CREATED).body(response);
        } catch (Exception e){
-           return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+           return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                   .body(new ErrorResponse("Error", e.getMessage()));
        }
+    }
+
+    @PostMapping("/getUser")
+    ResponseEntity<?> getUser(@RequestBody UserDto userDto){
+        if(userDto.getUsername() == null && userDto.getLastname() == null && userDto.getEmail() == null){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse("Error", "Filed is null"));
+        }
+        try{
+            List<UserDto> user = userService.getUsersByCriteria(userDto);
+            return ResponseEntity.status(HttpStatus.OK).body(user);
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse("Error", e.getMessage()));
+        }
     }
 
     @GetMapping
@@ -53,7 +72,8 @@ public class UserController {
             userService.updateUser(username, user);
             return new ResponseEntity<>("updated user successfully",HttpStatus.ACCEPTED);
         } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse("Error Unknown",e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse("Error Unknown",e.getMessage()));
         }
     }
 
@@ -64,7 +84,8 @@ public class UserController {
             return ResponseEntity.badRequest().body(errorResponse);
         }
         try {
-            return new ResponseEntity<>(userService.findByUserName(username), HttpStatus.ACCEPTED);
+            UserDto user = userService.findByUserName(username);
+            return new ResponseEntity<>( user, HttpStatus.ACCEPTED);
         } catch (Exception e){
             ErrorResponse errorResponse = new ErrorResponse("Error Unknown",e.getMessage());
             return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
@@ -74,7 +95,8 @@ public class UserController {
     @DeleteMapping("/{username}")
     public ResponseEntity<?> deleteUser(@PathVariable String username){
         if(username.isEmpty()){
-            return ResponseEntity.badRequest().body("Username cannot be empty");
+            ErrorResponse errorResponse = new ErrorResponse("Error validate","Username is required");
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
         try {
             userService.deleteByUserName(username);
@@ -84,7 +106,7 @@ public class UserController {
             return new ResponseEntity<>(response,HttpStatus.ACCEPTED);
         } catch(Exception e){
             ErrorResponse errorResponse = new ErrorResponse("Error Unknown",e.getMessage());
-            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
         }
     }
 }

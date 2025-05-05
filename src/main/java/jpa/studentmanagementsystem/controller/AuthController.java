@@ -72,7 +72,7 @@ public class AuthController {
         }
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         // Tạo JWT token
-        String jwtToken = jwtUtils.generateTokenFromUsername(loginRequest);
+        String jwtToken = jwtUtils.generateTokenFromUsername(loginRequest.getUsername());
         // Lấy danh sách quyền (roles)
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
@@ -95,7 +95,7 @@ public class AuthController {
                 return ResponseEntity.badRequest()
                         .body(new ErrorResponse("Validation Failed", " Email is already in use!"));
             }
-            if(userRepository.existsByPhoneNumber(signUpRequest.getPhone()) && !signUpRequest.getPhone().matches("^\\+84\\d{10}$")){
+            if(userRepository.existsByPhoneNumber(signUpRequest.getPhone()) && !signUpRequest.getPhone().matches("^\\+84\\d{9}$")){
                 return ResponseEntity.badRequest()
                         .body(new ErrorResponse("Validation Failed", " Phone is already in use!"));
             }

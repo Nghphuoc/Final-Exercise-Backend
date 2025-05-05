@@ -1,9 +1,6 @@
 package jpa.studentmanagementsystem.security;
 
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,17 +34,17 @@ public class JwtUtils {
         return null;
     }
 
-    public String generateTokenFromUsername(LoginRequest userDetails) {
-        String username = userDetails.getUsername();
+    // generate token
+    public String generateTokenFromUsername(String username) {
         return Jwts.builder()  // error here BASE64 where '.'
-                .subject(username)
+                .subject(username) // set username is subject
                 .issuedAt(new Date())
                 .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(key())
                 .compact();
-
     }
 
+    // get username từ token
     public String getUserNameFromJwtToken(String token) {
         return Jwts.parser()
                 .verifyWith((SecretKey) key())

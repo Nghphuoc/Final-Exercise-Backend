@@ -64,26 +64,26 @@ public class Security {
         return new BCryptPasswordEncoder();
     }
 
-//    @Bean
-//    public CommandLineRunner initData(RoleRepository roleRepository, UserRepository userRepository, PasswordEncoder passwordEncoder ) {
-//        return args -> {
-//            Role userRole = roleRepository.findByRoleName(RoleName.ROLE_USER)
-//                    .orElseGet(() -> roleRepository.save(new Role(RoleName.ROLE_USER)));
-//
-//            Role adminRole = roleRepository.findByRoleName(RoleName.ROLE_ADMIN)
-//                    .orElseGet(() -> roleRepository.save(new Role(RoleName.ROLE_ADMIN)));
-//
-//            if (!userRepository.existsByUsername("user")) {
-//                User user1 = new User("user",passwordEncoder.encode("123456"),"nguyen","user@gmail.com","+84178261764");
-//                user1.setRole(userRole);
-//                userRepository.save(user1);
-//            }
-//
-//            if (!userRepository.existsByUsername("admin")) {
-//                User admin = new User("admin",passwordEncoder.encode("admin"),"nguyen","admin@gmail.com","+84178226414");
-//                admin.setRole(adminRole);
-//                userRepository.save(admin);
-//            }
-//        };
-//    }
+    @Bean
+    public CommandLineRunner initData(RoleRepository roleRepository, UserRepository userRepository, PasswordEncoder passwordEncoder ) {
+        return args -> {
+            Role userRole = roleRepository.findByRoleName(RoleName.ROLE_USER)
+                    .orElseGet(() -> roleRepository.save(new Role(RoleName.ROLE_USER)));
+
+            Role adminRole = roleRepository.findByRoleName(RoleName.ROLE_ADMIN)
+                    .orElseGet(() -> roleRepository.save(new Role(RoleName.ROLE_ADMIN)));
+
+            if (!userRepository.existsByUsername("user")) {
+                User user1 = new User("user",passwordEncoder.encode("123456"),"nguyen","user@gmail.com","+84178261764");
+                user1.setRole(userRole);
+                userRepository.save(user1);
+            }
+
+            if (!userRepository.existsByUsername("admin")) {
+                User admin = new User("admin",passwordEncoder.encode("admin"),"nguyen","admin@gmail.com","+84178226414");
+                admin.setRole(adminRole);
+                userRepository.save(admin);
+            }
+        };
+    }
 }
