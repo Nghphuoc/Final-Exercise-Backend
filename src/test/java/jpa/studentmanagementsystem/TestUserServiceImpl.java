@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.*;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -124,7 +123,6 @@ public class TestUserServiceImpl {
 
         assertTrue(thrown.getMessage().contains("Email is already in use!: duplicate@example.com"));
     }
-
 
     @Test
     void testUpdateUser_invalidPhone() {

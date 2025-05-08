@@ -91,7 +91,6 @@ public class AuthController {
         try {
             validateSignUpRequest(signUpRequest);
             UserDto user = buildUserDto(signUpRequest);
-
             //set role
             Role role = roleService.resolveUserRole(signUpRequest.getRole());
             user.setRole(role);
@@ -125,7 +124,7 @@ public class AuthController {
             throw new RuntimeException("Email is already in use!");
         }
 
-        if (!request.getPhone().matches("^\\+84\\d{9}$")) {
+        if (!request.getPhone().matches("^0[0-9]{9}$")) {
             throw new RuntimeException("Phone format is incorrect!");
         }
 
@@ -140,7 +139,8 @@ public class AuthController {
                 passwordEncoder.encode(request.getPassword()),
                 request.getLastname(),
                 request.getEmail(),
-                request.getPhone()
+                request.getPhone(),
+                (Role) request.getRole()
         );
     }
 

@@ -36,13 +36,13 @@ public class UserController {
        }
     }
 
-    @PostMapping("/getUser")
+    @PostMapping("/search")
     ResponseEntity<?> getUser(@RequestBody UserDto userDto){
         if(userDto.getUsername() == null && userDto.getLastname() == null && userDto.getEmail() == null){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ErrorResponse("Error", "Filed is null"));
         }
-        try{
+        try {
             List<UserDto> user = userService.getUsersByCriteria(userDto);
             return ResponseEntity.status(HttpStatus.OK).body(user);
         } catch (Exception e){
@@ -70,7 +70,7 @@ public class UserController {
         }
         try {
             userService.updateUser(username, user);
-            return new ResponseEntity<>("updated user successfully",HttpStatus.ACCEPTED);
+            return new ResponseEntity<>(new ErrorResponse("success", "updated user successfully"),HttpStatus.ACCEPTED);
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ErrorResponse("Error Unknown",e.getMessage()));

@@ -4,20 +4,33 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jpa.studentmanagementsystem.dto.UserDto;
+import jpa.studentmanagementsystem.entity.Role;
 import jpa.studentmanagementsystem.entity.User;
 import jpa.studentmanagementsystem.exception.DuplicationException;
 import jpa.studentmanagementsystem.mapper.UserMapper;
 import jpa.studentmanagementsystem.repository.UserRepository;
 import jpa.studentmanagementsystem.service.UserService;
+import jpa.studentmanagementsystem.variable.RoleName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+/**
+ * Class title
+ *
+ * @author
+ * @version
+ * @function_id
+ * @screen_id
+ * @since 1.0
+ */
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -47,15 +60,15 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void deleteByUserName(String userName) {
-        userRepository.findByUsername(userName)
+        User user = userRepository.findByUsername(userName)
                 .orElseThrow(()->new RuntimeException("cannot found: `" + userName));
         userRepository.deleteByUsername(userName);
     }
 
     @Override
     @Transactional
-    public void createUser(User student) {
-        userRepository.save(student);
+    public void createUser(User user) {
+        userRepository.save(user);
     }
 
     @Override
@@ -78,21 +91,25 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserDto> getUsersByCriteria(UserDto userDto) {
-        StringBuilder queryBuilder = new StringBuilder("SELECT * FROM user WHERE 1=1 ");
+        StringBuilder queryBuilder = new StringBuilder("SELECT * FROM user");
         Map<String, Object> parameters = new HashMap<>();
+        List<String> conditions = new ArrayList<>();
 
-        // check data input
         if (userDto.getUsername() != null && !userDto.getUsername().isEmpty()) {
-            queryBuilder.append("AND user_name = :username ");
+            conditions.add("user_name = :username");
             parameters.put("username", userDto.getUsername());
         }
         if (userDto.getLastname() != null && !userDto.getLastname().isEmpty()) {
-            queryBuilder.append("AND last_name = :lastname ");
+            conditions.add("last_name = :lastname");
             parameters.put("lastname", userDto.getLastname());
         }
         if (userDto.getEmail() != null && !userDto.getEmail().isEmpty()) {
-            queryBuilder.append("AND email = :email ");
+            conditions.add("email = :email");
             parameters.put("email", userDto.getEmail());
+        }
+
+        if (!conditions.isEmpty()) {
+            queryBuilder.append(" WHERE ").append(String.join(" AND ", conditions));
         }
 
         Query query = entityManager.createNativeQuery(queryBuilder.toString(), User.class);
@@ -114,6 +131,15 @@ public class UserServiceImpl implements UserService {
         return false;
     }
 
+    public User registerOAuth2User(String email, String name) {
+        User user = new User();
+        user.setEmail(email);
+        user.setUsername(email); // Hoặc tùy chỉnh
+        user.setLastname(name);
+        //user.setRole(RoleName.ROLE_USER); // Gán quyền mặc định
+        return userRepository.save(user);
+    }
+
     private User getExistingUser(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));
@@ -129,7 +155,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private void validateAndUpdatePhoneNumber(User existingUser, String newPhone) throws DuplicationException {
-        if (!newPhone.matches("^\\+84\\d{9}$")) {
+        if (!newPhone.matches("^0[0-9]{9}$")) {
             throw new DuplicationException("Phone number is incorrect!: " + newPhone);
         }
 

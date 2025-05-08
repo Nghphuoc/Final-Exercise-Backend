@@ -16,7 +16,7 @@ public class SignupRequest {
 
     @NotBlank
     @Size(max = 50)
-    @Email
+    @Email(message = "Email không đúng định dạng")
     private String email;
 
     @Setter
@@ -30,7 +30,7 @@ public class SignupRequest {
     @Setter
     @Getter
     @NotBlank
-    @Size(min = 12, max = 12)
+    @Size(min = 10, max = 10)
     private String phone;
 
     @Setter
@@ -61,6 +61,34 @@ public class SignupRequest {
         this.password = password;
     }
 
+    public Set<String> getRole() {
+        return role;
+    }
+
+    public void setRole(Set<String> role) {
+        this.role = role;
+    }
+
+    public @NotBlank @Size(min = 10, max = 10) String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(@NotBlank @Size(min = 10, max = 10) String phone) {
+        this.phone = phone;
+    }
+
+    public String getLastname() {
+        return lastname;
+    }
+
+    public void setLastname(String lastname) {
+        this.lastname = lastname;
+    }
+
+    public @NotBlank @Size(min = 3, max = 50) String getFullName() {
+        return username;
+    }
+
     public SignupRequest(String fullName, String email, Set<String> role, String password, String phone) {
         this.username = fullName;
         this.email = email;
@@ -69,7 +97,16 @@ public class SignupRequest {
         this.phone = phone;
     }
 
-    public @NotBlank @Size(min = 3, max = 50) String getFullName() {
-        return username;
+    public SignupRequest(String username, String email, Set<String> role, String password, String phone, String lastname) {
+        this.username = username;
+        this.email = email;
+        this.role = role;
+        this.password = password;
+        this.phone = phone;
+        this.lastname = lastname;
     }
+    public SignupRequest() {
+
+    }
+
 }

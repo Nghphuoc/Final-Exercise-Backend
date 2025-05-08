@@ -23,12 +23,13 @@ public class User {
     private String lastname;
 
     @Column(name = "email", unique = true)
-    @Email
+    @Email(message = "Email không đúng định dạng")
     @NotBlank
     private String email;
 
     @Column(name = "phoneNumber", unique = true)
     private String phoneNumber;
+
 
     @ManyToOne(fetch = FetchType.EAGER,cascade = CascadeType.MERGE)
     @JoinColumn(name = "role_id", referencedColumnName = "role_id")
@@ -41,4 +42,5 @@ public class User {
         this.email = email;
         this.phoneNumber = phoneNumber;
     }
+
 }

@@ -32,4 +32,5 @@ public class UserDto {
         this.email = email;
         this.phoneNumber = phoneNumber;
     }
+
 }

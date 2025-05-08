@@ -24,6 +24,7 @@ public class UserMapper {
                 user.getEmail(),
                 user.getPhoneNumber(),
                 user.getRole()
+
         );
     }
 }
